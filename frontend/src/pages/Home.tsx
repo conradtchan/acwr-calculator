@@ -1,5 +1,5 @@
 import React from 'react';
-import { NotebookText, LineChart, Timer, ArrowRight } from 'lucide-react';
+import { NotebookText, LineChart, Timer, ArrowRight, Route } from 'lucide-react';
 
 function Home() {
   return (
@@ -51,6 +51,26 @@ function Home() {
                 </h2>
                 <p className="text-gray-600">
                   Predict your race times for any distance using proven mathematical models. Enter a recent race result to get accurate predictions for your target distance.
+                </p>
+              </div>
+            </div>
+          </a>
+
+          <a 
+            href="/race-planner"
+            className="block bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden no-underline"
+          >
+            <div className="p-8 flex items-start space-x-6">
+              <div className="flex-shrink-0">
+                <Route className="h-12 w-12 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-2xl font-semibold text-gray-900 mb-2 flex items-center">
+                  Race Planner
+                  <ArrowRight className="h-5 w-5 ml-2 text-blue-600" />
+                </h2>
+                <p className="text-gray-600">
+                  Plan your race strategy with detailed splits and breaks. Account for factors like water stops, crowds, and terrain to create a realistic race plan with estimated finish time.
                 </p>
               </div>
             </div>
