@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Timer, Info, AlertTriangle, Plus, Minus, Mountain, ChevronUp, ChevronDown } from 'lucide-react';
 
 interface Split {
@@ -27,6 +27,7 @@ type DistanceUnit = 'km' | 'mi';
 
 const KM_TO_MI = 0.621371;
 const MI_TO_KM = 1.60934;
+const STORAGE_KEY = 'race-planner-data';
 
 const commonRaces: RaceDistance[] = [
   { name: '5K', distance: 5, defaultSplits: 2 },
@@ -37,19 +38,49 @@ const commonRaces: RaceDistance[] = [
 ];
 
 function RacePlanner() {
-  const [unit, setUnit] = useState<DistanceUnit>('km');
-  const [targetDistance, setTargetDistance] = useState<number>(42.2);
-  const [basePace, setBasePace] = useState<{ minutes: number; seconds: number }>({ minutes: 5, seconds: 30 });
-  const [splits, setSplits] = useState<Split[]>([
-    { id: '1', distance: 21.1, paceAdjustment: 0, isHilly: false, description: 'First half' },
-    { id: '2', distance: 21.1, paceAdjustment: 30, isHilly: false, description: 'Second half' } // 30s slower per km/mi
-  ]);
-  const [breaks, setBreaks] = useState<Break[]>([
-    { id: '1', type: 'crowd', duration: 30, distance: 0, description: 'Start line crowding' },
-    { id: '2', type: 'drink', duration: 15, distance: 5, description: 'First water station' },
-    { id: '3', type: 'drink', duration: 15, distance: 10, description: 'Second water station' },
-    { id: '4', type: 'toilet', duration: 120, distance: 15, description: 'Toilet break' }
-  ]);
+  const [unit, setUnit] = useState<DistanceUnit>(() => {
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    return savedData ? JSON.parse(savedData).unit : 'km';
+  });
+
+  const [targetDistance, setTargetDistance] = useState<number>(() => {
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    return savedData ? JSON.parse(savedData).targetDistance : 42.2;
+  });
+
+  const [basePace, setBasePace] = useState<{ minutes: number; seconds: number }>(() => {
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    return savedData ? JSON.parse(savedData).basePace : { minutes: 5, seconds: 30 };
+  });
+
+  const [splits, setSplits] = useState<Split[]>(() => {
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    return savedData ? JSON.parse(savedData).splits : [
+      { id: '1', distance: 21.1, paceAdjustment: 0, isHilly: false, description: 'First half' },
+      { id: '2', distance: 21.1, paceAdjustment: 30, isHilly: false, description: 'Second half' }
+    ];
+  });
+
+  const [breaks, setBreaks] = useState<Break[]>(() => {
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    return savedData ? JSON.parse(savedData).breaks : [
+      { id: '1', type: 'crowd', duration: 30, distance: 0, description: 'Start line crowding' },
+      { id: '2', type: 'drink', duration: 15, distance: 5, description: 'First water station' },
+      { id: '3', type: 'drink', duration: 15, distance: 10, description: 'Second water station' },
+      { id: '4', type: 'toilet', duration: 120, distance: 15, description: 'Toilet break' }
+    ];
+  });
+
+  // Save to localStorage whenever state changes
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      unit,
+      targetDistance,
+      basePace,
+      splits,
+      breaks
+    }));
+  }, [unit, targetDistance, basePace, splits, breaks]);
 
   const convertDistance = (distance: number, from: DistanceUnit, to: DistanceUnit): number => {
     if (from === to) return distance;
@@ -343,7 +374,24 @@ function RacePlanner() {
                 {splits.map((split, index) => (
                   <div key={split.id} className="border rounded-lg p-4 bg-gray-50">
                     <div className="flex justify-between items-start mb-4">
-                      <h3 className="font-medium">Split {index + 1}</h3>
+                      <div className="flex items-center space-x-2">
+                        <h3 className="font-medium">Split {index + 1}</h3>
+                        <button
+                          onClick={() => {
+                            const newSplits = [...splits];
+                            newSplits[index].isHilly = !newSplits[index].isHilly;
+                            setSplits(newSplits);
+                          }}
+                          className={`p-1.5 rounded-md flex items-center transition-colors ${
+                            split.isHilly 
+                              ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' 
+                              : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                          }`}
+                          title={split.isHilly ? 'Click to mark as flat terrain' : 'Click to mark as hilly terrain'}
+                        >
+                          <Mountain className="h-4 w-4" />
+                        </button>
+                      </div>
                       <button
                         onClick={() => removeSplit(split.id)}
                         className="text-red-600 hover:text-red-800"
@@ -351,68 +399,65 @@ function RacePlanner() {
                         <Minus className="h-4 w-4" />
                       </button>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Distance ({unit})</label>
-                        <input
-                          type="number"
-                          value={split.distance}
-                          onChange={(e) => {
-                            const newSplits = [...splits];
-                            newSplits[index].distance = parseFloat(e.target.value) || 0;
-                            setSplits(newSplits);
-                          }}
-                          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                          min="0"
-                          step="0.1"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Pace Adjustment
-                          <span className="text-xs text-gray-500 ml-1">(seconds per {unit})</span>
-                        </label>
-                        <div className="flex items-start space-x-2">
-                          <div className="flex-1">
-                            <div className="relative">
-                              <input
-                                type="number"
-                                value={split.paceAdjustment}
-                                onChange={(e) => {
-                                  const newSplits = [...splits];
-                                  newSplits[index].paceAdjustment = parseInt(e.target.value) || 0;
-                                  setSplits(newSplits);
-                                }}
-                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm pr-2"
-                                step="1"
-                              />
-                            </div>
-                            <div className="text-sm text-gray-600 mt-1">
-                              {formatAdjustment(split.paceAdjustment)} = {formatPace(calculateAdjustedPace(split.paceAdjustment))}
-                            </div>
-                          </div>
-                          <div className="flex flex-col">
-                            <button
-                              type="button"
-                              onClick={() => handlePaceAdjustment(index, -5)}
-                              className="p-1 rounded-t border border-gray-300 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                              <ChevronUp className="h-4 w-4 text-gray-600" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handlePaceAdjustment(index, 5)}
-                              className="p-1 rounded-b border-b border-l border-r border-gray-300 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                              <ChevronDown className="h-4 w-4 text-gray-600" />
-                            </button>
-                          </div>
+                    <div className="grid grid-cols-12 gap-4">
+                      <div className="col-span-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Distance</label>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="number"
+                            value={split.distance}
+                            onChange={(e) => {
+                              const newSplits = [...splits];
+                              newSplits[index].distance = parseFloat(e.target.value) || 0;
+                              setSplits(newSplits);
+                            }}
+                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                            min="0"
+                            step="0.1"
+                          />
+                          <span className="text-sm text-gray-500">{unit}</span>
                         </div>
                       </div>
-                    </div>
-                    <div className="mt-4 space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">Description & Terrain</label>
-                      <div className="flex items-center space-x-2">
+                      <div className="col-span-5">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Pace Adjustment</label>
+                        <div className="flex items-center space-x-2">
+                          <div className="flex-1 flex items-stretch">
+                            <input
+                              type="number"
+                              value={split.paceAdjustment}
+                              onChange={(e) => {
+                                const newSplits = [...splits];
+                                newSplits[index].paceAdjustment = parseInt(e.target.value) || 0;
+                                setSplits(newSplits);
+                              }}
+                              className="block w-full rounded-l-md border-r-0 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm no-spinners"
+                              step="1"
+                            />
+                            <div className="flex border border-l-0 border-gray-300 rounded-r-md divide-x">
+                              <button
+                                type="button"
+                                onClick={() => handlePaceAdjustment(index, -5)}
+                                className="px-2 hover:bg-gray-100"
+                              >
+                                <ChevronUp className="h-4 w-4 text-gray-600" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handlePaceAdjustment(index, 5)}
+                                className="px-2 hover:bg-gray-100"
+                              >
+                                <ChevronDown className="h-4 w-4 text-gray-600" />
+                              </button>
+                            </div>
+                          </div>
+                          <span className="text-sm text-gray-500">sec/{unit}</span>
+                        </div>
+                        <div className="text-sm text-gray-600 mt-1">
+                          {formatAdjustment(split.paceAdjustment)} = {formatPace(calculateAdjustedPace(split.paceAdjustment))}
+                        </div>
+                      </div>
+                      <div className="col-span-3">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                         <input
                           type="text"
                           value={split.description}
@@ -422,34 +467,9 @@ function RacePlanner() {
                             setSplits(newSplits);
                           }}
                           className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                          placeholder="Optional"
                         />
-                        <div className="flex items-center space-x-2 whitespace-nowrap">
-                          <span className="text-sm text-gray-500">Hilly terrain</span>
-                          <button
-                            onClick={() => {
-                              const newSplits = [...splits];
-                              newSplits[index].isHilly = !newSplits[index].isHilly;
-                              setSplits(newSplits);
-                            }}
-                            className={`p-2 rounded-md flex items-center transition-colors ${
-                              split.isHilly 
-                                ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' 
-                                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                            }`}
-                            title={split.isHilly ? 'Click to mark as flat terrain' : 'Click to mark as hilly terrain'}
-                          >
-                            <Mountain className="h-4 w-4" />
-                            <span className="ml-1 text-xs">
-                              {split.isHilly ? 'Hilly' : 'Flat'}
-                            </span>
-                          </button>
-                        </div>
                       </div>
-                      <p className="text-xs text-gray-500">
-                        {split.isHilly 
-                          ? 'This section contains hills - consider adjusting the pace accordingly'
-                          : 'Mark this section as hilly if it contains significant elevation changes'}
-                      </p>
                     </div>
                   </div>
                 ))}
@@ -494,49 +514,56 @@ function RacePlanner() {
                         <Minus className="h-4 w-4" />
                       </button>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">At Distance ({unit})</label>
+                    <div className="grid grid-cols-12 gap-4">
+                      <div className="col-span-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">At Distance</label>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="number"
+                            value={brk.distance}
+                            onChange={(e) => {
+                              const newBreaks = [...breaks];
+                              newBreaks[index].distance = parseFloat(e.target.value) || 0;
+                              setBreaks(newBreaks);
+                            }}
+                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                            min="0"
+                            step="0.1"
+                          />
+                          <span className="text-sm text-gray-500">{unit}</span>
+                        </div>
+                      </div>
+                      <div className="col-span-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Duration</label>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="number"
+                            value={brk.duration}
+                            onChange={(e) => {
+                              const newBreaks = [...breaks];
+                              newBreaks[index].duration = parseInt(e.target.value) || 0;
+                              setBreaks(newBreaks);
+                            }}
+                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                            min="0"
+                          />
+                          <span className="text-sm text-gray-500">sec</span>
+                        </div>
+                      </div>
+                      <div className="col-span-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                         <input
-                          type="number"
-                          value={brk.distance}
+                          type="text"
+                          value={brk.description}
                           onChange={(e) => {
                             const newBreaks = [...breaks];
-                            newBreaks[index].distance = parseFloat(e.target.value) || 0;
+                            newBreaks[index].description = e.target.value;
                             setBreaks(newBreaks);
                           }}
                           className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                          min="0"
-                          step="0.1"
+                          placeholder="Optional"
                         />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Duration (seconds)</label>
-                        <input
-                          type="number"
-                          value={brk.duration}
-                          onChange={(e) => {
-                            const newBreaks = [...breaks];
-                            newBreaks[index].duration = parseInt(e.target.value) || 0;
-                            setBreaks(newBreaks);
-                          }}
-                          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                          min="0"
-                        />
-                      </div>
-                    </div>
-                    <div className="mt-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                      <input
-                        type="text"
-                        value={brk.description}
-                        onChange={(e) => {
-                          const newBreaks = [...breaks];
-                          newBreaks[index].description = e.target.value;
-                          setBreaks(newBreaks);
-                        }}
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                      />
                     </div>
                   </div>
                 ))}
