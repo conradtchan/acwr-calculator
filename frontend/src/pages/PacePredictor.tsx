@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Timer, Info } from 'lucide-react';
+import { Timer, Info, AlertTriangle } from 'lucide-react';
 
 interface Time {
   hours: number;
@@ -79,7 +79,7 @@ function PacePredictor() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           <div className="bg-white rounded-lg shadow-xl p-6">
             <h2 className="text-xl font-semibold mb-6">Known Performance</h2>
             
@@ -221,6 +221,35 @@ function PacePredictor() {
                 <div className="text-4xl font-bold text-blue-600">
                   {formatTime(predictedTime)}
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-xl p-6">
+          <div className="flex items-start space-x-2">
+            <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-1" />
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Limitations of Race Time Prediction</h3>
+              <div className="text-gray-600 space-y-4">
+                <div>
+                  <h4 className="font-semibold">1. Individual Variability</h4>
+                  <p>The formula uses a standard exponent (1.06) that may not accurately reflect your personal running characteristics. Some runners may perform better or worse than predicted, especially at longer distances.</p>
+                </div>
+                
+                <div>
+                  <h4 className="font-semibold">2. Training Status</h4>
+                  <p>Predictions assume you're equally trained for both distances. The formula may overestimate performance if you haven't specifically trained for the target distance, particularly for longer races.</p>
+                </div>
+                
+                <div>
+                  <h4 className="font-semibold">3. Distance Scaling</h4>
+                  <p>Predictions are most accurate when the target distance is within 1-2 times the known distance. Extrapolating from very short to very long distances (e.g., 5K to marathon) may be less reliable.</p>
+                </div>
+                
+                <p className="mt-4 text-sm italic">
+                  Use these predictions as general guidance rather than absolute targets. Consider factors like specific training, race conditions, and personal experience when setting race goals.
+                </p>
               </div>
             </div>
           </div>
