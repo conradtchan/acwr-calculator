@@ -55,7 +55,7 @@ function App() {
 
   const handleMileageChange = (index: number, value: string) => {
     const newValue = Math.max(0, Number(value));
-    setWeeklyData(prev => 
+    setWeeklyData(prev =>
       prev.map((week, i) => i === index ? { ...week, mileage: newValue } : week)
     );
 
@@ -123,7 +123,7 @@ function App() {
               </ul>
               <h4 className="font-semibold text-gray-900 mb-2">How to Use This Tool:</h4>
               <ol className="list-decimal list-inside space-y-1">
-                <li>Enter your weekly running distance starting from 4 weeks ago</li>
+                <li>Enter your weekly running distance starting from 4 or more weeks ago</li>
                 <li>A new input field will appear automatically as you enter data</li>
                 <li>The ACWR will be calculated after you've entered at least 4 weeks of data</li>
                 <li>Monitor the colour-coded risk levels and graph to guide your training</li>
@@ -177,7 +177,7 @@ function App() {
         <div className="bg-white rounded-lg shadow-xl p-6 mb-8">
           <h2 className="text-2xl font-semibold mb-6">Training Load Analysis</h2>
           <div className="h-96">
-            <Line 
+            <Line
               data={chartData}
               options={{
                 responsive: true,
@@ -240,33 +240,33 @@ function App() {
                     <h4 className="font-semibold">1. Mathematical Coupling</h4>
                     <p>The ACWR is a proportion rather than a true measure of change. Including acute load in the chronic load calculation creates artificial limitations and spurious correlations.</p>
                   </div>
-                  
+
                   <div>
                     <h4 className="font-semibold">2. Unweighted Averages</h4>
                     <p>The conventional ACWR treats all four weeks of chronic load equally, despite more recent workload having a greater impact on injury risk.</p>
                   </div>
-                  
+
                   <div>
                     <h4 className="font-semibold">3. Arbitrary Categorisation</h4>
                     <p>The practice of categorising ACWR into arbitrary "safe" and "high-risk" zones can lead to information loss and bias in injury risk models.</p>
                   </div>
-                  
+
                   <div>
                     <h4 className="font-semibold">4. Low ACWR Risk Interpretation</h4>
                     <p>The correlation between low ACWR values and higher injury risk may be due to early-week injuries creating artificially low ACWR values, rather than a true causal relationship.</p>
                   </div>
-                  
+
                   <div>
                     <h4 className="font-semibold">5. External Factors</h4>
                     <p>Many external factors (recovery status, fatigue, etc.) influence injury risk but aren't accounted for in ACWR models, potentially leading to misinterpretation.</p>
                   </div>
-                  
+
                   <div>
                     <h4 className="font-semibold">6. Recurrent Injuries</h4>
                     <p>The ACWR doesn't account for prior injuries, which influence an athlete's load tolerance. Modified models are needed for tracking workload in athletes recovering from injuries.</p>
                   </div>
                 </div>
-                
+
                 <p className="mt-4 text-sm italic">
                   Given these limitations, this tool should be used as one of many indicators in your training management strategy, not as a sole determinant of training decisions. Consider working with a qualified coach who can provide comprehensive guidance based on multiple factors.
                 </p>
