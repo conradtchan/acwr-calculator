@@ -2,6 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-a {
+a:not(.no-underline) {
   @apply underline;
 }
