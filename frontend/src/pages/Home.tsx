@@ -1,5 +1,5 @@
 import React from 'react';
-import { NotebookText, Calculator, ArrowRight } from 'lucide-react';
+import { NotebookText, LineChart, Timer, ArrowRight } from 'lucide-react';
 
 function Home() {
   return (
@@ -15,14 +15,14 @@ function Home() {
           </p>
         </div>
 
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-3xl mx-auto space-y-6">
           <a 
             href="/acwr"
             className="block bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden no-underline"
           >
             <div className="p-8 flex items-start space-x-6">
               <div className="flex-shrink-0">
-                <Calculator className="h-12 w-12 text-blue-600" />
+                <LineChart className="h-12 w-12 text-blue-600" />
               </div>
               <div className="flex-1">
                 <h2 className="text-2xl font-semibold text-gray-900 mb-2 flex items-center">
@@ -36,11 +36,25 @@ function Home() {
             </div>
           </a>
 
-          <div className="mt-16 text-center text-gray-600">
-            <p className="text-sm">
-              More tools coming soon!
-            </p>
-          </div>
+          <a 
+            href="/pace-predictor"
+            className="block bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden no-underline"
+          >
+            <div className="p-8 flex items-start space-x-6">
+              <div className="flex-shrink-0">
+                <Timer className="h-12 w-12 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-2xl font-semibold text-gray-900 mb-2 flex items-center">
+                  Race Time Predictor
+                  <ArrowRight className="h-5 w-5 ml-2 text-blue-600" />
+                </h2>
+                <p className="text-gray-600">
+                  Predict your race times for any distance using proven mathematical models. Enter a recent race result to get accurate predictions for your target distance.
+                </p>
+              </div>
+            </div>
+          </a>
         </div>
       </div>
 
