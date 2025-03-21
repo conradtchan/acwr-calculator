@@ -12,10 +12,32 @@ interface Distance {
   unit: 'km' | 'mi';
 }
 
+const STORAGE_KEY = 'pace-predictor-data';
+
 function PacePredictor() {
-  const [knownDistance, setKnownDistance] = useState<Distance>({ value: 5, unit: 'km' });
-  const [knownTime, setKnownTime] = useState<Time>({ hours: 0, minutes: 25, seconds: 0 });
-  const [targetDistance, setTargetDistance] = useState<Distance>({ value: 10, unit: 'km' });
+  const [knownDistance, setKnownDistance] = useState<Distance>(() => {
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    return savedData ? JSON.parse(savedData).knownDistance : { value: 5, unit: 'km' };
+  });
+
+  const [knownTime, setKnownTime] = useState<Time>(() => {
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    return savedData ? JSON.parse(savedData).knownTime : { hours: 0, minutes: 25, seconds: 0 };
+  });
+
+  const [targetDistance, setTargetDistance] = useState<Distance>(() => {
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    return savedData ? JSON.parse(savedData).targetDistance : { value: 10, unit: 'km' };
+  });
+
+  // Save to localStorage whenever state changes
+  React.useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      knownDistance,
+      knownTime,
+      targetDistance
+    }));
+  }, [knownDistance, knownTime, targetDistance]);
 
   const calculatePredictedTime = useCallback(() => {
     // Convert everything to kilometers for calculation

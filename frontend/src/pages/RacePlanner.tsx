@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Timer, Info, AlertTriangle, Plus, Minus, Mountain } from 'lucide-react';
+import { Timer, Info, AlertTriangle, Plus, Minus, Mountain, ChevronUp, ChevronDown } from 'lucide-react';
 
 interface Split {
   id: string;
@@ -93,6 +93,12 @@ function RacePlanner() {
     setBasePace(convertPace(basePace, unit, newUnit));
 
     setUnit(newUnit);
+  };
+
+  const handlePaceAdjustment = (index: number, change: number) => {
+    const newSplits = [...splits];
+    newSplits[index].paceAdjustment = (newSplits[index].paceAdjustment || 0) + change;
+    setSplits(newSplits);
   };
 
   const totalSplitDistance = splits.reduce((sum, split) => sum + split.distance, 0);
@@ -366,19 +372,40 @@ function RacePlanner() {
                           Pace Adjustment
                           <span className="text-xs text-gray-500 ml-1">(seconds per {unit})</span>
                         </label>
-                        <div className="space-y-1">
-                          <input
-                            type="number"
-                            value={split.paceAdjustment}
-                            onChange={(e) => {
-                              const newSplits = [...splits];
-                              newSplits[index].paceAdjustment = parseInt(e.target.value) || 0;
-                              setSplits(newSplits);
-                            }}
-                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                          />
-                          <div className="text-sm text-gray-600">
-                            {formatAdjustment(split.paceAdjustment)} = {formatPace(calculateAdjustedPace(split.paceAdjustment))}
+                        <div className="flex items-start space-x-2">
+                          <div className="flex-1">
+                            <div className="relative">
+                              <input
+                                type="number"
+                                value={split.paceAdjustment}
+                                onChange={(e) => {
+                                  const newSplits = [...splits];
+                                  newSplits[index].paceAdjustment = parseInt(e.target.value) || 0;
+                                  setSplits(newSplits);
+                                }}
+                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm pr-2"
+                                step="1"
+                              />
+                            </div>
+                            <div className="text-sm text-gray-600 mt-1">
+                              {formatAdjustment(split.paceAdjustment)} = {formatPace(calculateAdjustedPace(split.paceAdjustment))}
+                            </div>
+                          </div>
+                          <div className="flex flex-col">
+                            <button
+                              type="button"
+                              onClick={() => handlePaceAdjustment(index, -5)}
+                              className="p-1 rounded-t border border-gray-300 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                              <ChevronUp className="h-4 w-4 text-gray-600" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handlePaceAdjustment(index, 5)}
+                              className="p-1 rounded-b border-b border-l border-r border-gray-300 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                              <ChevronDown className="h-4 w-4 text-gray-600" />
+                            </button>
                           </div>
                         </div>
                       </div>
